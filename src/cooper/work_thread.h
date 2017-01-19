@@ -176,7 +176,16 @@ public:
 	void cast(Func&& f, Args&&... args) {
 		submit(std::forward<Func>(f), std::forward<Args>(args)...);
 	}
-
+	/**
+	 * Wait until all the tasks queued up until now have executed.
+	 * This simply queues an empty (no-op) function and blocks the caller
+	 * until it has executed.
+	 * @par
+	 * Note that when this returns, it doesn't necessarily mean that the
+	 * queue is empty, but rather that all tasks queued up before it have
+	 * finished. Other client threads might have queued tasks to run after
+	 * this, while this call was blocked, waiting to execute.
+	 */
 	void flush() { call([]{}); }
 };
 

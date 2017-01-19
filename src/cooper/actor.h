@@ -22,6 +22,11 @@ class actor
 	work_thread thr_;
 
 protected:
+	/**
+	 * Determines if the currently executing thread is the actor.
+	 * @return @em true if the current thread is the internal actor thread,
+	 *  	   @em false if not.
+	 */
 	bool on_actor_thread() const {
 		return std::this_thread::get_id() == thr_.get_id();
 	}
