@@ -18,41 +18,40 @@ Like the Elixir GenServer, the C++ clients send messages to the sever thread by 
 ```
 class file_manager : public cooper::actor
 {
-	/** The output file */
-	std::ofstream os_;
+    /** The output file */
+    std::ofstream os_;
 
-	// ----- The server API -----
+    // ----- The server API -----
 
-	// The server methods run sequentially in the actor thread. When 
-	// running, the server functions have exclusive access to the 
-	// private data of the object without requiring any locking.
+    // The server methods run sequentially in the actor thread. When 
+    // running, the server functions have exclusive access to the 
+    // private data of the object without requiring any locking.
 
-	void handle_write(const std::string& s) {
-		assert(on_actor_thread());
-		os_ << s << std::endl;
-	}
+    void handle_write(const std::string& s) {
+        assert(on_actor_thread());
+        os_ << s << std::endl;
+    }
 
 public:
-	/**
-	 * Create a file manager to operate on the specified file.
-	 * @param name The name of the file to manage.
-	 */
-	explicit file_manager(const std::string& name)
-		: os_(name) {}
+    /**
+     * Create a file manager to operate on the specified file.
+     * @param name The name of the file to manage.
+     */
+    explicit file_manager(const std::string& name)
+        : os_(name) {}
 
-	// ----- The client API -----
+    // ----- The client API -----
 
-	// The client methods should submit sever tasks to the actor thread
-	// using the call() and cast() methods. They should *never* touch the
-	// object's data directly.
+    // The client methods should submit sever tasks to the actor thread
+    // using the call() and cast() methods. They should *never* touch
+    // the object's data directly.
 
-	void async_write(const std::string& s) {
-		cast(&file_manager::handle_write, this, s);
-	}
+    void async_write(const std::string& s) {
+        cast(&file_manager::handle_write, this, s);
+    }
 
-	void write(const std::string& s) {
+    void write(const std::string& s) {
 		call(&file_manager::handle_write, this, s);
-	}
+    }
 };
 ```
-
