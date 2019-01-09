@@ -13,7 +13,7 @@
 /**
  * This is a simple example of an actor to control access to a shared
  * resource.
- * This actor will manage an output file that
+ * This actor will manage an output file.
  */
 class file_manager : public cooper::actor
 {

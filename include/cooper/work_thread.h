@@ -11,6 +11,7 @@
 #include <future>
 #include <utility>
 #include <atomic>
+#include <functional>
 #include "cooper/thread_queue.h"
 #include "cooper/func_wrapper.h"
 
