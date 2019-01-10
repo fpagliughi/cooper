@@ -17,16 +17,16 @@ Like the Elixir GenServer, the C++ clients send messages to the sever thread by 
 
 This is an example of an in-memory key/value store that can be shared between the threads of an application.
 
-A classic approach might pait a `std::map` with a `mutex` to protect it from simultaneous access from multiple threads. Even better, a reader/writer lock would allow multiple reader threads to access it simultaneously.
+A classic approach might pair a `std::map` with a `mutex` to protect it from simultaneous access from multiple threads. Even better, a reader/writer lock would allow multiple reader threads to access it simultaneously.
 
 This example hides the map inside an actor. It has a few advantages:
 
-- The class maintains full control of access to the map
+- The class maintains full control of access to the map.
 - An errant thread can't lock the map indefinitely and starve out other threads.
 - The internal actor doesn't need to use locks since the actor thread is the only one to ever directly access the map.
 - There's a degree of fairness since requests from all the different client threads are queued sequentially, in the order received.
 - Writer threads don't need to block waiting for access to the map. The _set(key,val)_ method can run asynchronously, but...
-- Even though writes are asynchronous from the point of view of the client thread, there's still a deterministic outcome for the reads, since all operations are queued in a FIFO manner. A _get(key)_ will always return the last value set - there's no race condition due to the apparent asynchronous behavior of the writes.
+- Even though writes are asynchronous from the point of view of the client thread, there's still a deterministic outcome for the reads, since all operations are queued sequentially. A _get(key)_ will always return the last value set - there's no race condition due to the asynchronous behavior of the writes.
  
 
 ```
@@ -109,5 +109,6 @@ There are several conventions that are helpful (and possibly essential) to follo
 <p align="center">
 `assert(on_actor_thread());`
 </p>
+
 - Actors are also a good way to share resources, such as sockets, serial ports, database connections, etc.
 - The _cast()_ operation is very helpful to keep a client from blocking on an opperation, but an errant client can overload an actor with a lot of asynchronous (cast) operations. Sometimes, even if a client method does not require a return value, it might be helpful to code it as a _call()_ to apply back-pressure to the client.
