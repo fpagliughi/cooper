@@ -117,5 +117,6 @@ There are several conventions that are helpful (and possibly essential) to follo
 <p align="center">
 `assert(on_actor_thread());`
 </p>
+
 - Actors are also a good way to share resources, such as sockets, serial ports, database connections, etc.
 - The _cast()_ operation is very helpful to keep a client from blocking on an opperation, but an errant client can overload an actor with a lot of asynchronous (cast) operations. Sometimes, even if a client method does not require a return value, it might be helpful to code it as a _call()_ to apply back-pressure to the client.
