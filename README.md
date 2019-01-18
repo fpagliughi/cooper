@@ -36,6 +36,10 @@ class shared_keyval : public cooper::actor
     std::map<string, string> kv_;
 
     // ----- The server API -----
+    
+    // These always run in the context of the single actor 
+    // thread and therefore can't interrupt each other - so
+    // no locking is necessary.
 
     // Set the value in the key/value store.
     void handle_set(const string& key, const string& val) {
@@ -62,6 +66,9 @@ public:
 
     // ----- The client API -----
 
+    // These run in the context of the calling (client) thread
+    // and therefor are not allowed to touch the private data.
+    
     /**
      * Sets a value in the key/value store.
      * This is an asynchronous operation.
@@ -99,16 +106,16 @@ And exceptions thrown by the internal actor thread will also get passed back to 
 There are several conventions that are helpful (and possibly essential) to follow:
 
 - The public API is callable by external code and runs in the context of the calling thread. This should be considered the "Client API".
-- The public methods should **never** touch the internal data in the object (neither write nor read).
-- The private methods in the class (or a subset of them) should run in the context of the actor thread. This should be considered the "Server API).
+- The private methods in the class (or a subset of them) should run in the context of the actor thread. This should be considered the "Server API".
+- The public client methods should **never** touch the internal data in the object (neither write nor read).
+- The private server methods can manipulate the data freely without using locks since they run one after the other, always in the context of the actor thread. 
 - It is helpful to match calls between the Client and Server API's, and simply have the client call the matching server method.
-- Even if you don't touch the data directly, you should never do a read/modify/write operation from the client API. It wouldn't be guaranteed to run atomically from the perspective of the other clients. Rather, that should be moved into a server call and then all clients would percieve it as being atomic.
+- Even if you don't touch the data directly, you should never do a read/modify/write operation from the client API. It wouldn't be guaranteed to run atomically from the perspective of the other clients. Rather, that should be moved into a server call and then all clients would percieve it as being atomic. As a rule of thumb: _If you do more than one cast() or call() operation in a client method, you may be doing something wrong!_
 - The server methods should try to run as quickly as possible and return. Each object has a single execution context, and a blocked call will prevent any other operations from running.
 - A server call should **never** block waiting for another client operation, since the blocked actor thread will not be able to run the other calls and deadlock will occur.
 - Server calls that are assumed to be running in the actor thread context should probably test that that is the case - at least during the develop and debug cycles. A good idea is to have them assert that they are actually running on the correct actor thread:
 <p align="center">
 `assert(on_actor_thread());`
 </p>
-
 - Actors are also a good way to share resources, such as sockets, serial ports, database connections, etc.
 - The _cast()_ operation is very helpful to keep a client from blocking on an opperation, but an errant client can overload an actor with a lot of asynchronous (cast) operations. Sometimes, even if a client method does not require a return value, it might be helpful to code it as a _call()_ to apply back-pressure to the client.
