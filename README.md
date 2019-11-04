@@ -115,7 +115,7 @@ There are several conventions that are helpful (and possibly essential) to follo
 - A server call should **never** block waiting for another client operation, since the blocked actor thread will not be able to run the other calls and deadlock will occur.
 - Server calls that are assumed to be running in the actor thread context should probably test that that is the case - at least during the develop and debug cycles. A good idea is to have them assert that they are actually running on the correct actor thread:
 <p align="center">
-`assert(on_actor_thread());`
+assert(on_actor_thread());
 </p>
 
 - Actors are also a good way to share resources, such as sockets, serial ports, database connections, etc.
