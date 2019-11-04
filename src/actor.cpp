@@ -1,4 +1,7 @@
 // actor.cpp
+//
+// This file is part of the cooper project.
+//
 
 /****************************************************************************
  * BSD 3-Clause License

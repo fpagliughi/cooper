@@ -54,10 +54,12 @@ namespace cooper {
 /////////////////////////////////////////////////////////////////////////////
 
 /**
- * A thread-save queue for inter-thread communication.
+ * A thread-safe queue for inter-thread communication.
+ *
  * This is a lockinq queue with blocking operations. The get() operations
  * can always block on an empty queue, but have variations for non-blocking
  * (try_get) and bounded-time blocking (try_get_for, try_get_until).
+ *
  * @par
  * The default queue has a capacity that is unbounded in the practical
  * sense, limited by the system RAM. In this mode the object will not block
@@ -67,6 +69,7 @@ namespace cooper {
  * smaller than the current size of the queue. In that case all put's to the
  * queue will block until the number of items are removed from the queue to
  * bring the size below the new capacity.
+ *
  * @par
  * Note that the queue uses move semantics to place items into the queue and
  * remove items from the queue. This means that the type, T, of the data
@@ -112,7 +115,16 @@ private:
 	using unique_guard = std::unique_lock<std::mutex>;
 
 public:
+	/**
+	 * Creates a task queue with the largest capacity supported by the
+	 * system.
+	 */
 	thread_queue() : cap_(MAX_CAPACITY) {}
+	/**
+	 * Creats a task queue with the specified maximum capacity.
+	 *
+	 * @param cap The maximum number of items the queue can hold.
+	 */
 	explicit thread_queue(size_t cap) : cap_(cap) {}
 	/**
 	 * Determine if the queue is empty.
@@ -182,6 +194,7 @@ public:
 			g.unlock();
 			notEmptyCond_.notify_one();
 		}
+		return true;
 	}
 	/**
 	 * Attempt to place an item in the queue with a bounded wait.

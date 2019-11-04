@@ -1,6 +1,6 @@
 // timer.cpp
 //
-// This file is part of the Cooper project.
+// This file is part of the cooper project.
 //
 
 /****************************************************************************
