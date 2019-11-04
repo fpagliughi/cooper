@@ -2,13 +2,13 @@
 #
 # travis_build.sh
 #
-# Travis CI build/test script for the sockpp library.
+# Travis CI build/test script for the "cooper" C++ actor library.
 #
 
 set -e
 
 echo "travis build dir $TRAVIS_BUILD_DIR pwd $PWD"
-cmake -Bbuild -H. -DSOCKPP_BUILD_EXAMPLES=ON -DSOCKPP_BUILD_TESTS=ON
+cmake -Bbuild -H. -DCOOPER_BUILD_EXAMPLES=ON -DCOOPER_BUILD_TESTS=ON
 cmake --build build/
 
 # Run the unit tests
