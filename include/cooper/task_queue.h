@@ -97,7 +97,7 @@ namespace cooper {
  * support back(), front(), push_back(), pop_front().
  */
 template <typename T, class Container=std::deque<T>>
-class thread_queue
+class task_queue
 {
 public:
 	/** The underlying container type to use for the queue. */
@@ -122,7 +122,7 @@ private:
 	/** The capacity of the queue */
 	size_type cap_;
 	/** The number of outstanding tasks */
-	size_type nTasks_;
+	size_type nTask_;
 	/** The actual STL container to hold data */
 	std::queue<T,Container> que_;
 
@@ -137,9 +137,10 @@ private:
 	 * the guard, and that there is room for at least one more item in the
 	 * queue. It does the signaling for "not empty", if necessary.
 	 * @param g The guard (assumed to be locked)
+	 * @param n The number of items in the queue, i.e. que_.size()
 	 * @param val The value to add to the queue.
 	 */
-	void queue_item(unique_guard& g, value_type val) {
+	void queue_item(unique_guard& g, size_type n, value_type val) {
 		que_.emplace(std::move(val));
 		++nTask_;
 		if (n == 0) {
@@ -162,7 +163,7 @@ private:
 			g.unlock();
 			notFullCond_.notify_one();
 		}
-		return value_type;
+		return val;
 	}
 
 public:
@@ -170,12 +171,12 @@ public:
 	 * Creates a task queue with the largest capacity supported by the
 	 * system.
 	 */
-	task_queue() : cap_{MAX_CAPACITY}, nTasks_{0} {}
+	task_queue() : cap_{MAX_CAPACITY}, nTask_{0} {}
 	/**
 	 * Creats a task queue with the specified maximum capacity.
 	 * @param cap The maximum number of items the queue can hold.
 	 */
-	explicit task_queue(size_t cap) : cap_{cap}, nTasks_{0} {}
+	explicit task_queue(size_t cap) : cap_{cap}, nTask_{0} {}
 	/**
 	 * Determine if the queue is empty.
 	 * @return @em true if there are no elements in the queue, @em false if
@@ -230,7 +231,7 @@ public:
 		size_type n = que_.size();
 		if (n >= cap_)
 			notFullCond_.wait(g, [=]{return que_.size() < cap_;});
-		queue_item(g, std::move(val));
+		queue_item(g, n, std::move(val));
 	}
 	/**
 	 * Non-blocking attempt to place an item into the queue.
@@ -243,7 +244,7 @@ public:
 		size_type n = que_.size();
 		if (n >= cap_)
 			return false;
-		queue_item(g, std::move(val));
+		queue_item(g, n, std::move(val));
 		return true;
 	}
 	/**
@@ -261,7 +262,7 @@ public:
 		size_type n = que_.size();
 		if (n >= cap_ && !notFullCond_.wait_for(g, relTime, [=]{return que_.size() < cap_;}))
 			return false;
-		queue_item(g, std::move(val));
+		queue_item(g, n, std::move(val));
 		return true;
 	}
 	/**
@@ -280,7 +281,7 @@ public:
 		size_type n = que_.size();
 		if (n >= cap_ && !notFullCond_.wait_until(g, absTime, [=]{return que_.size() < cap_;}))
 			return false;
-		queue_item(g, std::move(val));
+		queue_item(g, n, std::move(val));
 		return true;
 	}
 	/**

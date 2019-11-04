@@ -170,7 +170,7 @@ endif()
 
 # --- Unit Tests ---
 
-#if(COOPER_BUILD_TESTS)
-#	add_subdirectory(tests/unit)
-#endif()
+if(COOPER_BUILD_TESTS)
+	add_subdirectory(tests/unit)
+endif()
 

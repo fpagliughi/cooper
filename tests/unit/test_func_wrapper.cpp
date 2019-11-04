@@ -2,6 +2,11 @@
 // 
 
 #include "cooper/func_wrapper.h"
+#include <catch2/catch.hpp>
+
+using namespace cooper;
+
+#if 0
 #include <iostream>
 #include <functional>
 
@@ -17,5 +22,11 @@ int main(int argc, char* argv[])
 	cooper::func_wrapper fw(std::move(fw1));
 	fw();
 	return 0;
+}
+#endif
+
+
+TEST_CASE("func_wrapper constructors", "[func_wrapper]") {
+	REQUIRE(true);
 }
 

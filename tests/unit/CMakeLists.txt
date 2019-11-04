@@ -49,6 +49,7 @@ find_package(Threads REQUIRED)
 add_executable(unit_tests 
 	unit_tests.cpp
 	test_func_wrapper.cpp
+    test_task_queue.cpp
 	test_work.cpp
 	test_timer.cpp
 )
