@@ -40,13 +40,13 @@
 cmake_minimum_required(VERSION 3.10)
 
 ## project
-project(cooper VERSION "0.1.0")
+project(cooper VERSION "0.1.1")
 
 ## library name
 set(COOPER cooper)
 set(COOPER_STATIC ${COOPER}-static)
 
-set(CMAKE_BUILD_TYPE Release)
+#set(CMAKE_BUILD_TYPE Release)
 
 # --- build options ---
 
