@@ -1,6 +1,6 @@
 language: cpp
 sudo: required
-dist: bionic
+dist: xenial
 os: linux
 
 before_install:
@@ -37,7 +37,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-bionic-7
+            - llvm-toolchain-xenial-7
           packages:
             - clang-7
       env: COMPILER=clang++-7
@@ -46,7 +46,7 @@ matrix:
         apt:
           sources:
             - ubuntu-toolchain-r-test
-            - llvm-toolchain-bionic-8
+            - llvm-toolchain-xenial-8
           packages:
             - clang-8
       env: COMPILER=clang++-8
