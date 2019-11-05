@@ -9,7 +9,7 @@ set -e
 
 echo "travis build dir $TRAVIS_BUILD_DIR pwd $PWD"
 cmake -Bbuild -H. -DCOOPER_BUILD_EXAMPLES=ON -DCOOPER_BUILD_TESTS=ON
-cmake --build build/
+VERBOSE=1 cmake --build build/
 
 # Run the unit tests
 ./build/tests/unit/unit_tests --success
