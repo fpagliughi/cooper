@@ -37,7 +37,7 @@
 # ---------------------------------------------------------------------------
 
 ## CMake required version
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 ## project
 project(cooper VERSION "0.1.0")
@@ -62,7 +62,7 @@ option(COOPER_BUILD_EXAMPLES "Build example applications" OFF)
 option(COOPER_BUILD_TESTS "Build unit tests" OFF)
 option(COOPER_BUILD_DOCUMENTATION "Create Doxygen reference documentation" OFF)
 
-# --- C++14 build flags ---
+# --- C++17 build flags ---
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

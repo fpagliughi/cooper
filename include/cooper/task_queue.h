@@ -156,7 +156,7 @@ private:
 	 * @param g The guard (assumed to be locked)
 	 * @param n The number of items in the queue, i.e. que_.size()
 	 */
-	value_type deque_item(unique_guard& g, size_type n) {
+	value_type dequeue_item(unique_guard& g, size_type n) {
 		value_type val = std::move(que_.front());
 		que_.pop();
 		if (n == cap_) {
@@ -257,7 +257,7 @@ public:
 	 *  	   timeout occurred.
 	 */
 	template <typename Rep, class Period>
-	bool try_put_for(value_type* val, const std::chrono::duration<Rep, Period>& relTime) {
+	bool try_put_for(value_type val, const std::chrono::duration<Rep, Period>& relTime) {
 		unique_guard g(lock_);
 		size_type n = que_.size();
 		if (n >= cap_ && !notFullCond_.wait_for(g, relTime, [=]{return que_.size() < cap_;}))
@@ -276,7 +276,7 @@ public:
 	 *  	   timeout occurred.
 	 */
 	template <class Clock, class Duration>
-	bool try_put_until(value_type* val, const std::chrono::time_point<Clock,Duration>& absTime) {
+	bool try_put_until(value_type val, const std::chrono::time_point<Clock,Duration>& absTime) {
 		unique_guard g(lock_);
 		size_type n = que_.size();
 		if (n >= cap_ && !notFullCond_.wait_until(g, absTime, [=]{return que_.size() < cap_;}))

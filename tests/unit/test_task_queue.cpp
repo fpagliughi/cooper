@@ -43,6 +43,7 @@
 #include "cooper/task_queue.h"
 #include <catch2/catch.hpp>
 
+using namespace std::chrono;
 using namespace cooper;
 
 TEST_CASE("task_queue constructors", "[task_queue]") {
@@ -60,6 +61,131 @@ TEST_CASE("task_queue constructors", "[task_queue]") {
 		REQUIRE(que.empty());
 		REQUIRE(que.size() == 0);
 		REQUIRE(que.capacity() == N);
+	}
+}
+
+TEST_CASE("task_queue put", "[task_queue]") {
+	const auto TIMEOUT = 10ms;
+	const size_t N = 3;
+
+	task_queue<int> que(N);
+
+	SECTION("put") {
+		for (size_t i=1; i<=N; ++i)
+			que.put(int(i));
+
+		REQUIRE(!que.empty());
+		REQUIRE(que.size() == N);
+		REQUIRE(que.num_tasks() == N);
+	}
+
+	SECTION("try_put") {
+		REQUIRE(que.empty());
+
+		for (size_t i=1; i<=N; ++i)
+			REQUIRE(que.try_put(int(i)));
+
+		REQUIRE(!que.empty());
+		REQUIRE(que.size() == N);
+		REQUIRE(que.num_tasks() == N);
+
+		REQUIRE(!que.try_put(int(N+1)));
+	}
+
+	SECTION("try_put_for") {
+		REQUIRE(que.empty());
+
+		for (size_t i=1; i<=N; ++i)
+			REQUIRE(que.try_put_for(int(i), TIMEOUT));
+
+		REQUIRE(!que.empty());
+		REQUIRE(que.size() == N);
+		REQUIRE(que.num_tasks() == N);
+
+		REQUIRE(!que.try_put_for(int(N+1), TIMEOUT));
+	}
+
+	SECTION("try_put_until") {
+		REQUIRE(que.empty());
+
+		for (size_t i=1; i<=N; ++i)
+			REQUIRE(que.try_put_until(int(i), system_clock::now() + TIMEOUT));
+
+		REQUIRE(!que.empty());
+		REQUIRE(que.size() == N);
+		REQUIRE(que.num_tasks() == N);
+
+		REQUIRE(!que.try_put_until(int(N+1), system_clock::now() + TIMEOUT));
+	}
+}
+
+TEST_CASE("task_queue get", "[task_queue]") {
+	const auto TIMEOUT = 10ms;
+	const size_t N = 3;
+
+	task_queue<int> que(N);
+	for (size_t i=1; i<=N; ++i)
+		que.put(int(i));
+
+	SECTION("get") {
+		REQUIRE(que.size() == N);
+
+		for (size_t i=1; i<=N; ++i) {
+			REQUIRE(que.get() == int(i));
+			REQUIRE(que.size() == N-i);
+		}
+
+		REQUIRE(que.empty());
+		REQUIRE(que.size() == 0);
+		REQUIRE(que.num_tasks() == N);
+	}
+
+	SECTION("try_get") {
+		int val;
+		REQUIRE(que.size() == N);
+
+		for (size_t i=1; i<=N; ++i) {
+			REQUIRE(que.try_get(&val));
+			REQUIRE(val == int(i));
+			REQUIRE(que.size() == N-i);
+		}
+
+		REQUIRE(!que.try_get(&val));
+		REQUIRE(que.empty());
+		REQUIRE(que.size() == 0);
+		REQUIRE(que.num_tasks() == N);
+	}
+
+	SECTION("try_get_for") {
+		int val;
+		REQUIRE(que.size() == N);
+
+		for (size_t i=1; i<=N; ++i) {
+			REQUIRE(que.try_get_for(&val, TIMEOUT));
+			REQUIRE(val == int(i));
+			REQUIRE(que.size() == N-i);
+		}
+
+		REQUIRE(!que.try_get_for(&val, TIMEOUT));
+		REQUIRE(que.empty());
+		REQUIRE(que.size() == 0);
+		REQUIRE(que.num_tasks() == N);
+	}
+
+	SECTION("try_get_until") {
+		int val;
+		REQUIRE(que.size() == N);
+
+		for (size_t i=1; i<=N; ++i) {
+			REQUIRE(que.try_get_until(&val, system_clock::now() + TIMEOUT));
+			REQUIRE(val == int(i));
+			REQUIRE(que.size() == N-i);
+		}
+
+		REQUIRE(!que.try_get_until(&val, system_clock::now() + TIMEOUT));
+		REQUIRE(que.empty());
+		REQUIRE(que.size() == 0);
+		REQUIRE(que.num_tasks() == N);
 	}
 }
 
