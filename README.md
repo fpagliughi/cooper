@@ -1,4 +1,7 @@
 # cooper
+
+Master: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=master)](https://travis-ci.org/fpagliughi/cooper)  Develop: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=develop)](https://travis-ci.org/fpagliughi/cooper)
+
 A simple and novel approach to the Actor pattern in C++
 
 The actor pattern is a means of concurrent programming in which active "actor" objects run concurrently although each runs in its own single thread of control. The actors keep their internal data hidden from the others and only communicate through messages to each other.
