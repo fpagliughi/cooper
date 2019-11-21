@@ -48,6 +48,7 @@
 #include <limits>
 #include <deque>
 #include <queue>
+#include <algorithm>
 
 namespace cooper {
 
@@ -121,11 +122,11 @@ public:
 	 */
 	thread_queue() : cap_(MAX_CAPACITY) {}
 	/**
-	 * Creats a task queue with the specified maximum capacity.
-	 *
-	 * @param cap The maximum number of items the queue can hold.
+	 * Creates a task queue with the specified maximum capacity.
+     * @param cap The maximum number of items the queue can hold. This must
+     *            be at least one.
 	 */
-	explicit thread_queue(size_t cap) : cap_(cap) {}
+	explicit thread_queue(size_t cap) : cap_(std::max<size_type>(cap, 1)) {}
 	/**
 	 * Determine if the queue is empty.
 	 * @return @em true if there are no elements in the queue, @em false if
@@ -147,11 +148,15 @@ public:
 	 * Sets the capacity of the queue.
 	 * Note that the capacity can be set to a value smaller than the current
 	 * size of the queue. In that event, all calls to put() will block until
-	 * a suffucuent number
+     * a sufficuent number of items are removed to make room.
+     * @param cap The new capacity. This must be at least one.
+     * @return The previous capacity.
 	 */
-	void capacity(size_type cap) {
+	size_type capacity(size_type cap) {
+        cap = std::max<size_type>(cap, 1);
 		guard g(lock_);
-		cap_ = cap;
+		std::swap(cap_, cap);
+        return cap;
 	}
 	/**
 	 * Gets the number of items in the queue.
@@ -169,11 +174,11 @@ public:
 	 */
 	void put(value_type val) {
 		unique_guard g(lock_);
-		size_type n = que_.size();
-		if (n >= cap_)
+		if (que_.size() >= cap_)
 			notFullCond_.wait(g, [=]{return que_.size() < cap_;});
+        bool wasEmpty = que_.empty();
 		que_.emplace(std::move(val));
-		if (n == 0) {
+		if (wasEmpty) {
 			g.unlock();
 			notEmptyCond_.notify_one();
 		}
@@ -208,11 +213,11 @@ public:
 	template <typename Rep, class Period>
 	bool try_put_for(value_type* val, const std::chrono::duration<Rep, Period>& relTime) {
 		unique_guard g(lock_);
-		size_type n = que_.size();
-		if (n >= cap_ && !notFullCond_.wait_for(g, relTime, [=]{return que_.size() < cap_;}))
+		if (que_.size() >= cap_ && !notFullCond_.wait_for(g, relTime, [=]{return que_.size() < cap_;}))
 			return false;
+        bool wasEmpty = que_.empty();
 		que_.emplace(std::move(val));
-		if (n == 0) {
+		if (wasEmpty) {
 			g.unlock();
 			notEmptyCond_.notify_one();
 		}
@@ -231,11 +236,11 @@ public:
 	template <class Clock, class Duration>
 	bool try_put_until(value_type* val, const std::chrono::time_point<Clock,Duration>& absTime) {
 		unique_guard g(lock_);
-		size_type n = que_.size();
-		if (n >= cap_ && !notFullCond_.wait_until(g, absTime, [=]{return que_.size() < cap_;}))
+		if (que_.size() >= cap_ && !notFullCond_.wait_until(g, absTime, [=]{return que_.size() < cap_;}))
 			return false;
+        bool wasEmpty = que_.empty();
 		que_.emplace(std::move(val));
-		if (n == 0) {
+		if (wasEmpty) {
 			g.unlock();
 			notEmptyCond_.notify_one();
 		}
@@ -249,12 +254,11 @@ public:
 	 */
 	void get(value_type* val) {
 		unique_guard g(lock_);
-		auto n = que_.size();
-		if (n == 0)
+		if (que_.empty())
 			notEmptyCond_.wait(g, [=]{return !que_.empty();});
 		*val = std::move(que_.front());
 		que_.pop();
-		if (n == cap_) {
+		if (que_.size() == cap_-1) {
 			g.unlock();
 			notFullCond_.notify_one();
 		}
@@ -267,12 +271,11 @@ public:
 	 */
 	value_type get() {
 		unique_guard g(lock_);
-		auto n = que_.size();
-		if (n == 0)
+		if (que_.empty())
 			notEmptyCond_.wait(g, [=]{return !que_.empty();});
 		value_type val = std::move(que_.front());
 		que_.pop();
-		if (n == cap_) {
+		if (que_.size() == cap_-1) {
 			g.unlock();
 			notFullCond_.notify_one();
 		}
@@ -288,12 +291,11 @@ public:
 	 */
 	bool try_get(value_type* val) {
 		unique_guard g(lock_);
-		auto n = que_.size();
-		if (n == 0)
+		if (que_.empty())
 			return false;
 		*val = std::move(que_.front());
 		que_.pop();
-		if (n == cap_) {
+		if (que_.size() == cap_-1) {
 			g.unlock();
 			notFullCond_.notify_one();
 		}
@@ -312,12 +314,11 @@ public:
 	template <typename Rep, class Period>
 	bool try_get_for(value_type* val, const std::chrono::duration<Rep, Period>& relTime) {
 		unique_guard g(lock_);
-		auto n = que_.size();
-		if (n == 0 && !notEmptyCond_.wait_for(g, relTime, [=]{return !que_.empty();}))
+		if (que_.empty() && !notEmptyCond_.wait_for(g, relTime, [=]{return !que_.empty();}))
 			return false;
 		*val = std::move(que_.front());
 		que_.pop();
-		if (n == cap_) {
+		if (que_.size() == cap_-1) {
 			g.unlock();
 			notFullCond_.notify_one();
 		}
@@ -336,12 +337,11 @@ public:
 	template <class Clock, class Duration>
 	bool try_get_until(value_type* val, const std::chrono::time_point<Clock,Duration>& absTime) {
 		unique_guard g(lock_);
-		auto n = que_.size();
-		if (n == 0 && !notEmptyCond_.wait_until(g, absTime, [=]{return !que_.empty();}))
+		if (que_.empty() && !notEmptyCond_.wait_until(g, absTime, [=]{return !que_.empty();}))
 			return false;
 		*val = std::move(que_.front());
 		que_.pop();
-		if (n == cap_) {
+		if (que_.size() == cap_-1) {
 			g.unlock();
 			notFullCond_.notify_one();
 		}

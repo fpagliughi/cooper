@@ -1,6 +1,8 @@
 # cooper
 
-Master: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=master)](https://travis-ci.org/fpagliughi/cooper)  Develop: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=develop)](https://travis-ci.org/fpagliughi/cooper)
+Master Branch: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=master)](https://travis-ci.org/fpagliughi/cooper)
+
+Develop Branch: [![Build Status](https://travis-ci.org/fpagliughi/cooper.svg?branch=develop)](https://travis-ci.org/fpagliughi/cooper)
 
 A simple and novel approach to the Actor pattern in C++
 
