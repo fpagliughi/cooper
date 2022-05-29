@@ -1,6 +1,6 @@
 # CMakeLists.txt
 #
-# CMake file for the unit tests in the 'sockpp' library.
+# CMake file for the unit tests in the 'cooper' library.
 #
 # ---------------------------------------------------------------------------
 # This file is part of the "cooper" C++ actor library.
@@ -39,6 +39,9 @@
 
 find_package(Catch2 REQUIRED)
 
+message(STATUS "Building cooper unit tests")
+message(STATUS "Using library for unit tests: ${COOPER_LIB}")
+
 # --- For apps that use threads ---
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -49,16 +52,15 @@ find_package(Threads REQUIRED)
 add_executable(unit_tests 
 	unit_tests.cpp
 	test_func_wrapper.cpp
-    test_task_queue.cpp
+  test_task_queue.cpp
 	test_work.cpp
 	test_timer.cpp
 )
 
 # --- Link for executables ---
 
-message(STATUS "Using library for unit tests: ${COOPER_LIB}")
-
-target_link_libraries(unit_tests ${COOPER_LIB} 
+target_link_libraries(unit_tests
+  ${COOPER_LIB} 
 	Catch2::Catch2
 	Threads::Threads
 )

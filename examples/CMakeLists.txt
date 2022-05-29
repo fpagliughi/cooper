@@ -36,6 +36,9 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # --------------------------------------------------------------------------
 
+message(STATUS "Building cooper examples")
+message(STATUS "Using library for examples: ${COOPER_LIB}")
+
 # --- For apps that use threads ---
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -43,24 +46,19 @@ find_package(Threads REQUIRED)
 
 # --- Executables ---
 
-add_executable(out_file out_file.cpp)
-add_executable(shared_keyval shared_keyval.cpp)
+set(EXECUTABLES
+  out_file
+  shared_keyval
+)
 
-# --- Link for executables ---
-
-message(STATUS "Using library for examples: ${COOPER_LIB}")
-
-target_link_libraries(out_file ${COOPER_LIB} Threads::Threads)
-target_link_libraries(shared_keyval ${COOPER_LIB} Threads::Threads)
+foreach(EXECUTABLE ${EXECUTABLES})
+  add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
+  target_link_libraries(${EXECUTABLE} ${COOPER_LIB} Threads::Threads)
+endforeach()
 
 # --- Install ---
 
-set(INSTALL_TARGETS
-    out_file
-    shared_keyval)
-
-install(TARGETS ${INSTALL_TARGETS}
-    RUNTIME DESTINATION bin
-    LIBRARY DESTINATION lib
+install(TARGETS ${EXECUTABLES}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 

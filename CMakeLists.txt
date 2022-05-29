@@ -3,9 +3,9 @@
 # Top-level CMake build file for the 'cooper' library.
 #
 # ---------------------------------------------------------------------------
-# This file is part of the "cooper" C++ socket library.
+# This file is part of the "cooper" C++ actor library.
 #
-# Copyright (c) 2019 Frank Pagliughi
+# Copyright (c) 2019-2022 Frank Pagliughi
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -36,28 +36,22 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 # ---------------------------------------------------------------------------
 
-## CMake required version
 cmake_minimum_required(VERSION 3.10)
 
-## project
-project(cooper VERSION "0.1.1")
+project(cooper VERSION "0.1.2")
 
-## library name
+# library name
 set(COOPER cooper)
-set(COOPER_STATIC ${COOPER}-static)
-
-#set(CMAKE_BUILD_TYPE Release)
+set(COOPER_STATIC_LIB cooper-static)
+set(COOPER_OBJ_LIB cooper-objs)
+set(COOPER_INCLUDES ${CMAKE_SOURCE_DIR}/include)
+set(COOPER_SRC ${CMAKE_SOURCE_DIR}/src)
+set(COOPER_GENERATED_DIR ${CMAKE_BINARY_DIR}/generated)
 
 # --- build options ---
 
-if(WIN32)
-	option(COOPER_BUILD_STATIC "Build static library" ON)
-	option(COOPER_BUILD_SHARED "Build shared library (DLL)" OFF)
-else()
-	option(COOPER_BUILD_STATIC "Build static library" OFF)
-	option(COOPER_BUILD_SHARED "Build shared library" ON)
-endif()
-
+option(COOPER_BUILD_SHARED "Build shared library" ON)
+option(COOPER_BUILD_STATIC "Build static library" OFF)
 option(COOPER_BUILD_EXAMPLES "Build example applications" OFF)
 option(COOPER_BUILD_TESTS "Build unit tests" OFF)
 option(COOPER_BUILD_DOCUMENTATION "Create Doxygen reference documentation" OFF)
@@ -68,23 +62,23 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# --- Common Library Sources, etc ---
+if(WIN32)
+  include(GenerateExportHeader)
+  set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+endif()
+
+# --- Generate a version header ---
+
+configure_file(
+  ${CMAKE_SOURCE_DIR}/cmake/version.h.in
+  ${COOPER_GENERATED_DIR}/cooper/version.h
+)
+
+# --- Common library sources, etc ---
 
 add_subdirectory(src)
 
-# --- Header Locations ---
-
-target_include_directories(cooper-objs 
-	PUBLIC
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-		$<INSTALL_INTERFACE:include>
-	PRIVATE 
-		src
-)
-
 # --- System libraries ---
-
-include(GNUInstallDirs)
 
 if(WIN32)
 	set(LIBS_SYSTEM ws2_32)
@@ -93,60 +87,106 @@ elseif(UNIX)
 endif()
 
 
-## --- create the shared library ---
+# --- Collect the targets ---
 
 if(COOPER_BUILD_SHARED)
 	message(STATUS "Creating shared library: ${COOPER}")
-
-	add_library(${COOPER} SHARED $<TARGET_OBJECTS:cooper-objs>)
-
-    ## add dependencies to the shared library
-    target_link_libraries(${COOPER} ${LIBS_SYSTEM})
-
-	target_include_directories(${COOPER} PUBLIC 
-		$<TARGET_PROPERTY:cooper-objs,INCLUDE_DIRECTORIES>
-	)
-
-	set_target_properties(${COOPER} PROPERTIES
-		VERSION ${PROJECT_VERSION}
-		SOVERSION ${PROJECT_VERSION_MAJOR})
-
-	install(TARGETS ${COOPER}
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
-
+  list(APPEND COOPER_TARGETS ${COOPER})
 endif()
-
-# --- Create the static library ---
 
 if(COOPER_BUILD_STATIC)
-	message(STATUS "Creating static library: ${COOPER_STATIC}")
-
-	add_library(${COOPER_STATIC} STATIC $<TARGET_OBJECTS:cooper-objs>)
-
-    ## add dependencies to the static library
-    target_link_libraries(${COOPER_STATIC} ${LIBS_SYSTEM})
-
-	target_include_directories(${COOPER_STATIC} PUBLIC 
-		$<TARGET_PROPERTY:cooper-objs,INCLUDE_DIRECTORIES>
-	)
-
-	install(TARGETS ${COOPER}-static
-		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-		LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-	# Let the archive use the same name as the shared library
-	if(UNIX)
-		set_target_properties(${COOPER_STATIC} PROPERTIES OUTPUT_NAME ${COOPER})
-	endif()
+  message(STATUS "Creating static library: ${COOPER_STATIC_LIB}")
+  list(APPEND COOPER_TARGETS ${COOPER_STATIC_LIB})
 endif()
 
-# --- Install the library ---
 
-install(DIRECTORY include/${COOPER}/
-	DESTINATION include/${COOPER}
-	FILES_MATCHING PATTERN "*.h*")
+include(GNUInstallDirs)
+set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/cooper)
+
+if(NOT COOPER_TARGETS)
+  message(FATAL_ERROR "No build targets specified.")
+endif()
+
+target_include_directories(${COOPER_OBJ_LIB}
+  PUBLIC
+    $<BUILD_INTERFACE:${COOPER_INCLUDES}>
+    $<INSTALL_INTERFACE:include>
+  PRIVATE
+    ${COOPER_GENERATED}
+    ${COOPER_SRC}
+)
+
+if (COOPER_BUILD_SHARED)
+  add_library(${COOPER} SHARED $<TARGET_OBJECTS:${COOPER_OBJ_LIB}>)
+
+  ## add dependencies to the shared library
+  target_link_libraries(${COOPER} ${LIBS_SYSTEM})
+
+  target_include_directories(${COOPER}
+    PUBLIC 
+      $<BUILD_INTERFACE:${COOPER_INCLUDES}>
+      $<INSTALL_INTERFACE:include>
+    PRIVATE
+      ${COOPER_GENERATED}
+)
+
+  set_target_properties(${COOPER} PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+
+  # Add an alias so that library can be used inside the build tree
+  add_library(Cooper::${COOPER} ALIAS ${COOPER})
+
+  list(APPEND TARGET_FILES ${COOPER})
+endif()
+
+if(COOPER_BUILD_STATIC)
+  add_library(${COOPER_STATIC_LIB} STATIC $<TARGET_OBJECTS:${COOPER_OBJ_LIB}>)
+
+  # add dependencies to the static library
+  target_link_libraries(${COOPER_STATIC_LIB} ${LIBS_SYSTEM})
+
+  target_include_directories(${COOPER_STATIC_LIB}
+    PUBLIC 
+      $<BUILD_INTERFACE:${COOPER_INCLUDES}>
+      $<INSTALL_INTERFACE:include>
+    PRIVATE
+      ${COOPER_GENERATED}
+  )
+
+  # Let the archive use the same name as the shared library
+  if(UNIX)
+    set_target_properties(${COOPER_STATIC_LIB} PROPERTIES OUTPUT_NAME ${COOPER})
+  endif()
+
+  # Add an alias so that library can be used inside the build tree
+  add_library(Cooper::${COOPER_STATIC_LIB} ALIAS ${COOPER_STATIC_LIB})
+
+  list(APPEND TARGET_FILES ${COOPER_STATIC_LIB})
+endif()
+
+install(TARGETS ${TARGET_FILES}
+  EXPORT cooper-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+export(TARGETS ${COOPER_TARGETS} ${COOPER_OBJ_LIB}
+  NAMESPACE Cooper::
+  FILE "${CMAKE_BINARY_DIR}/CooperTargets.cmake"
+)
+
+install(EXPORT cooper-targets
+  NAMESPACE Cooper::
+  DESTINATION ${INSTALL_CONFIGDIR}
+)
+
+install(DIRECTORY include/
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
 
 # --- Documentation ---
 
@@ -159,7 +199,7 @@ endif()
 if(COOPER_BUILD_SHARED)
 	set(COOPER_LIB ${COOPER})
 else()
-	set(COOPER_LIB ${COOPER_STATIC})
+	set(COOPER_LIB ${COOPER_STATIC_LIB})
 endif()
 
 # --- Examples Applications ---

@@ -37,12 +37,21 @@
 #
 # ---------------------------------------------------------------------------
 
-add_library(cooper-objs OBJECT
+add_library(${COOPER_OBJ_LIB} OBJECT
 	actor.cpp
 	timer.cpp
 	work_thread.cpp
 )
 
+target_compile_options(${COOPER_OBJ_LIB}
+  PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W3>
+    $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic>
+)
+
 # This is only necessary for older compilers, but doesn't hurt
-set_target_properties(cooper-objs PROPERTIES POSITION_INDEPENDENT_CODE 1)
+set_target_properties(${COOPER_OBJ_LIB}
+  PROPERTIES
+    POSITION_INDEPENDENT_CODE 1
+)
 
