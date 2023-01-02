@@ -37,7 +37,6 @@
 # --------------------------------------------------------------------------
 
 message(STATUS "Building cooper examples")
-message(STATUS "Using library for examples: ${COOPER_LIB}")
 
 # --- For apps that use threads ---
 
@@ -53,7 +52,7 @@ set(EXECUTABLES
 
 foreach(EXECUTABLE ${EXECUTABLES})
   add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
-  target_link_libraries(${EXECUTABLE} ${COOPER_LIB} Threads::Threads)
+  target_link_libraries(${EXECUTABLE} cooper Threads::Threads)
 endforeach()
 
 # --- Install ---
