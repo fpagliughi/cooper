@@ -59,7 +59,7 @@ class func_wrapper
 		virtual ~base() {}
 		virtual void invoke() =0;
 	};
-	/** Concretae template class to wrap function objects */
+	/** Concrete template class to wrap function objects */
 	template<typename F>
 	class impl_t: public base {
 		F f;

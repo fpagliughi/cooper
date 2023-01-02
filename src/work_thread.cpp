@@ -6,7 +6,7 @@
 /****************************************************************************
  * BSD 3-Clause License
  *
- * Copyright (c) 2017, Frank Pagliughi
+ * Copyright (c) 2017-2023, Frank Pagliughi
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -50,6 +50,15 @@ namespace cooper {
 work_thread::work_thread() : quit_(false)
 {
 	thr_ = std::thread(&work_thread::thread_func, this);
+}
+
+// --------------------------------------------------------------------------
+
+work_thread::~work_thread()
+{
+	quit();
+	if (thr_.joinable())
+		thr_.join();
 }
 
 // --------------------------------------------------------------------------

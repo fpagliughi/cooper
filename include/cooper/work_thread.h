@@ -83,12 +83,9 @@ public:
 	 */
 	work_thread();
 	/**
-	 * Detsroys the work thread, blocking until all tasks are complete.
+	 * Destroys the work thread, blocking until all tasks are complete.
 	 */
-	~work_thread() {
-		quit();
-		thr_.join();
-	}
+	~work_thread();
 	/**
 	 * Request that the thread quit operation.
 	 */
@@ -96,6 +93,12 @@ public:
 		quit_ = true;
 		cast([]{});
 	}
+    /**
+     * Joins the underlying thread, blocking until it completes all tasks.
+     */
+    void join() {
+        thr_.join();
+    }
 	/**
 	 * Get the ID of the work thread.
 	 * @return The ID of the work thread.
@@ -107,6 +110,18 @@ public:
 	 */
 	size_type queue_capacity() const {
 		return que_.capacity();
+	}
+	/**
+     * Gets the curent size of the task message queue.
+     *
+     * This is the number of jobs that are queued to run. Note, however,
+     * that even when zero, there still could be a job running in the
+     * thread.
+     *
+	 * @return The size of the task message queue.
+	 */
+	size_type queue_size() const {
+		return que_.size();
 	}
 	/**
 	 * Sets the capacity of the task message queue.
@@ -223,6 +238,85 @@ public:
 	 * this, while this call was blocked, waiting to execute.
 	 */
 	void flush() { call([]{}); }
+};
+
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A collection of work threads that can be used like a thread pool, but
+ * individual threads are accessible.
+ */
+class work_threads
+{
+	/** The collection of worker threads */
+    std::vector<work_thread> thrs_;
+	/** The count for the next available thread */
+	mutable std::atomic<size_t> nextThr_;
+
+public:
+	/**
+	 * Creates a collection of work threads with a default number of threads
+	 * (one per core).
+	 */
+    work_threads() : work_threads(std::thread::hardware_concurrency()) {}
+	/**
+	 * Creates a collection of work threads with the specified number of
+	 * threads.
+	 *
+	 * @param n The number of threads to add to the collection.
+	 */
+    work_threads(size_t n) : thrs_(n) {}
+    /**
+     * Gets the index for the next thread that can be assigned.
+     * @return size_t The index for the next thread that can be assigned.
+     */
+	size_t next_thread_idx() const {
+		return nextThr_++ % thrs_.size();
+	}
+    /**
+     * Gets a reference to the next thread in the collection that can be
+     * assigned.
+     *
+     * @return A reference to the next thread in the collection that can be
+     * assigned.
+     */
+	work_thread& next_thread() { return thrs_[next_thread_idx()]; }
+    /**
+     * Gets a reference to the specific work thread in the collection.
+     *
+     * @param i Index into the collection.
+     * @return A reference to the specific work thread in the collection.
+     */
+	work_thread& operator[](size_t i) { return thrs_[i]; }
+
+	void flush() {
+		for (auto& thr : thrs_)
+			thr.flush();
+	}
+};
+
+/////////////////////////////////////////////////////////////////////////////
+
+/**
+ * A singleton for a system-wide collection of work threads.
+ *
+ * By default this creates one thread per processor core.
+ */
+class sys_work_threads : public work_threads
+{
+	sys_work_threads() : work_threads() {}
+
+public:
+    /**
+     * Gets a reference to the singleton collection of work threads.
+     *
+     * This creates the collection the first time that it's called.
+     * @return A reference to the singleton collection of work threads.
+     */
+	static sys_work_threads& instance() {
+		static sys_work_threads thrs;
+		return thrs;
+	}
 };
 
 /////////////////////////////////////////////////////////////////////////////

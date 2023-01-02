@@ -57,7 +57,7 @@ namespace cooper {
 /**
  * A thread-safe queue for inter-thread communication.
  *
- * This is a lockinq queue with blocking operations. The get() operations
+ * This is a locking queue with blocking operations. The get() operations
  * can always block on an empty queue, but have variations for non-blocking
  * (try_get) and bounded-time blocking (try_get_for, try_get_until).
  *
@@ -65,7 +65,7 @@ namespace cooper {
  * The default queue has a capacity that is unbounded in the practical
  * sense, limited by the system RAM. In this mode the object will not block
  * when placing values into the queue. A capacity can bet set with the
- * construtcor or, at any time later by calling the capacity(size_type)
+ * constructor or, at any time later by calling the capacity(size_type)
  * method. Using this latter method, the capacity can be set to an amount
  * smaller than the current size of the queue. In that case all put's to the
  * queue will block until the number of items are removed from the queue to
@@ -115,6 +115,9 @@ private:
 	/** General purpose guard */
 	using unique_guard = std::unique_lock<std::mutex>;
 
+	/** Copy constructor is deleted  */
+	thread_queue(const thread_queue&) =delete;
+
 public:
 	/**
 	 * Creates a task queue with the largest capacity supported by the
@@ -148,7 +151,7 @@ public:
 	 * Sets the capacity of the queue.
 	 * Note that the capacity can be set to a value smaller than the current
 	 * size of the queue. In that event, all calls to put() will block until
-     * a sufficuent number of items are removed to make room.
+     * a sufficient number of items are removed to make room.
      * @param cap The new capacity. This must be at least one.
      * @return The previous capacity.
 	 */
@@ -302,9 +305,9 @@ public:
 		return true;
 	}
 	/**
-	 * Attempt to remove an item from the queue for a bounded amout of time.
+	 * Attempt to remove an item from the queue for a bounded amount of time.
 	 * This will retrieve the next item from the queue. If the queue is
-	 * empty, it will wait the specified amout of time for an item to arive
+	 * empty, it will wait the specified amount of time for an item to arrive
 	 * before timing out.
 	 * @param val Pointer to a variable to receive the value.
 	 * @param relTime The amount of time to wait until timing out.
@@ -325,9 +328,9 @@ public:
 		return true;
 	}
 	/**
-	 * Attempt to remove an item from the queue for a bounded amout of time.
+	 * Attempt to remove an item from the queue for a bounded amount of time.
 	 * This will retrieve the next item from the queue. If the queue is
-	 * empty, it will wait until the specified time for an item to arive
+	 * empty, it will wait until the specified time for an item to arrive
 	 * before timing out.
 	 * @param val Pointer to a variable to receive the value.
 	 * @param absTime The absolute time to wait to before timing out.

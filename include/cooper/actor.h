@@ -54,7 +54,7 @@ namespace cooper {
 class actor
 {
 	/** The actor's thread */
-	work_thread thr_;
+	work_thread& thr_;
 
 protected:
 	/**
@@ -123,7 +123,7 @@ protected:
 	}
 
 public:
-
+	actor() : thr_(sys_work_threads::instance().next_thread()) {}
 };
 
 /////////////////////////////////////////////////////////////////////////////

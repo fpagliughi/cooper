@@ -65,11 +65,11 @@ namespace cooper {
  * The queue keeps a count of outstanding jobs. Each put() increments the
  * number of outstanding tasks, but the count is not decremented when the
  * item is removed from the queue, but rather later when the thread manually
- * insicates that processing has completed with a call to task_done().
+ * indicates that processing has completed with a call to task_done().
  *
  * This behavior is adapted from the Python queue.Queue.
  *
- * This is a lockinq queue with blocking operations. The get() operations
+ * This is a locking queue with blocking operations. The get() operations
  * can always block on an empty queue, but have variations for non-blocking
  * (try_get) and bounded-time blocking (try_get_for, try_get_until).
  *
@@ -77,7 +77,7 @@ namespace cooper {
  * The default queue has a capacity that is unbounded in the practical
  * sense, limited by the system RAM. In this mode the object will not block
  * when placing values into the queue. A capacity can bet set with the
- * construtcor or, at any time later by calling the capacity(size_type)
+ * constructor or, at any time later by calling the capacity(size_type)
  * method. Using this latter method, the capacity can be set to an amount
  * smaller than the current size of the queue. In that case all put's to the
  * queue will block until the number of items are removed from the queue to
@@ -173,7 +173,7 @@ public:
 	 */
 	task_queue() : cap_{MAX_CAPACITY}, nTask_{0} {}
 	/**
-	 * Creats a task queue with the specified maximum capacity.
+	 * Creates a task queue with the specified maximum capacity.
 	 * @param cap The maximum number of items the queue can hold.
 	 */
 	explicit task_queue(size_t cap) : cap_{cap}, nTask_{0} {}
@@ -198,7 +198,7 @@ public:
 	 * Sets the capacity of the queue.
 	 * Note that the capacity can be set to a value smaller than the current
 	 * size of the queue. In that event, all calls to put() will block until
-	 * a suffucuent number of items are removed to open a slot.
+	 * a sufficient number of items are removed to open a slot.
 	 */
 	void capacity(size_type cap) {
 		guard g(lock_);
@@ -327,9 +327,9 @@ public:
 		return true;
 	}
 	/**
-	 * Attempt to remove an item from the queue for a bounded amout of time.
+	 * Attempt to remove an item from the queue for a bounded amount of time.
 	 * This will retrieve the next item from the queue. If the queue is
-	 * empty, it will wait the specified amout of time for an item to arive
+	 * empty, it will wait the specified amount of time for an item to arrive
 	 * before timing out.
 	 * @param val Pointer to a variable to receive the value.
 	 * @param relTime The amount of time to wait until timing out.
@@ -346,9 +346,9 @@ public:
 		return true;
 	}
 	/**
-	 * Attempt to remove an item from the queue for a bounded amout of time.
+	 * Attempt to remove an item from the queue for a bounded amount of time.
 	 * This will retrieve the next item from the queue. If the queue is
-	 * empty, it will wait until the specified time for an item to arive
+	 * empty, it will wait until the specified time for an item to arrive
 	 * before timing out.
 	 * @param val Pointer to a variable to receive the value.
 	 * @param absTime The absolute time to wait to before timing out.

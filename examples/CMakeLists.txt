@@ -48,6 +48,7 @@ find_package(Threads REQUIRED)
 set(EXECUTABLES
   out_file
   shared_keyval
+  swarm
 )
 
 foreach(EXECUTABLE ${EXECUTABLES})
