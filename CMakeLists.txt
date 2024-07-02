@@ -142,6 +142,7 @@ endif()
 # --- Unit Tests ---
 
 if(COOPER_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(tests/unit)
 endif()
 
