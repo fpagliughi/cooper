@@ -12,11 +12,47 @@ Languages that support the actor pattern natively, such as Elixir and Erlang, us
 
 The classical C++ object-oriented means of passing messages within a single process uses functon calls to the public interface of a C++ class, with overloading to match different parameter sets.
 
-The 'cooper' library attempts to bring that simplicity to the Actor pattern in C++, by also mixing in the Actor client/server model of the Elixir/Erlang OTP behaviour of the "GenServer". 
+The 'cooper' library attempts to bring that simplicity to the Actor pattern in C++, by also mixing in the Actor client/server model of the Elixir/Erlang OTP behaviour of the "GenServer".
 
 In this model, a C++ actor class creates a public "client" interface of standard class methods that can be called by any thread or other actor in the application. The public methods then schedule the operations to run, in sequential order, on the actor thread by queueing matched methods from the private "server" API.
 
 Like the Elixir GenServer, the C++ clients send messages to the sever thread by using the "call()" and "cast()" operations of the actor base class. The call() performs a synchronous operation in which the caller thread/actor is blocked until the operation completes in the internal actor thread. A cast() sends an asynchronous request to the server thread.
+
+## Using in your CMake application
+
+With the library installed, you can use it in a C++ application built with CMake. It creates targets for `Cooper::cooper-shared` and/or `Cooper::cooper-static` for the shared and static versions of the library, respectively, if each of the versions were built. It also creates a target `Cooper::cooper` for whichever version for the library was built, if only one was built, and sets it to the shared library if both were built. So use it if the application doesn't care about the version, or would prefer the shared library, if available.
+
+An application CMake can look like this:
+
+```
+# CMakeLists.txt
+#
+# CMake build file for a 'cooper' C++ application.
+#
+
+cmake_minimum_required(VERSION 3.12)
+project(MyProj VERSION 0.1.0 LANGUAGES CXX)
+
+# --- Dependencies ---
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
+find_package(cooper REQUIRED)
+
+# --- Application ---
+
+add_executable(my_app my_app.cpp)
+target_link_libraries(my_app Cooper::cooper Threads::Threads)
+```
+
+You can also use it from a submodule in your source tree, to build the library along with your own code. Simply replace the `find_package()` with an `add_subdirectory()`, like:
+
+```
+add_subdirectory(cooper)
+```
+
+The rest of the CMake file is the same. The submodule will also alias the targets with the namespace, so you still set the link library as `Cooper::cooper`, etc.
 
 ## Example
 
@@ -32,7 +68,7 @@ This example hides the map inside an actor. It has a few advantages:
 - There's a degree of fairness since requests from all the different client threads are queued sequentially, in the order received.
 - Writer threads don't need to block waiting for access to the map. The _set(key,val)_ method can run asynchronously, but...
 - Even though writes are asynchronous from the point of view of the client thread, there's still a deterministic outcome for the reads, since all operations are queued sequentially. A _get(key)_ will always return the last value set - there's no race condition due to the asynchronous behavior of the writes.
- 
+
 
 ```
 class shared_keyval : public cooper::actor
@@ -41,7 +77,7 @@ class shared_keyval : public cooper::actor
     std::map<string, string> kv_;
 
     // ----- The server API -----
-    
+
     // These always run in the context of the single actor 
     // thread and therefore can't interrupt each other - so
     // no locking is necessary.
@@ -73,7 +109,7 @@ public:
 
     // These run in the context of the calling (client) thread
     // and therefor are not allowed to touch the private data.
-    
+
     /**
      * Sets a value in the key/value store.
      * This is an asynchronous operation.
