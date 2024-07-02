@@ -1,14 +1,13 @@
-// test_work_thread.cpp
+// catch2_version.h
 //
-// Test of the work_thread class in the cooper library.
-//
-// This file is part of the cooper project.
+// Header to figure out which Catch2 version we're using, and the proper
+// header for that version.
 //
 
 /****************************************************************************
  * BSD 3-Clause License
  *
- * Copyright (c) 2019-2024, Frank Pagliughi
+ * Copyright (c) 2024, Frank Pagliughi
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,36 +39,8 @@
  *
  ***************************************************************************/
 
-#include "cooper/work_thread.h"
-#include "catch2_version.h"
-
-#if 0
-#include <iostream>
-#include <chrono>
-
-using namespace std;
-using namespace std::chrono;
-
-int do_something(double sec)
-{
-	cout << "starting something" << endl;
-	this_thread::sleep_for(duration<double>(sec));
-	cout << "finished something" << endl;
-	return 42;
-}
-
-int main()
-{
-	cooper::work_thread thr;
-
-	cout << "queuing a task" << endl;
-	thr.call(do_something, 2.5);
-	cout << "finished the task" << endl;
-	return 0;
-}
+#ifdef CATCH2_V2
+	#include "catch2/catch.hpp"
+#else
+    #include "catch2/catch_all.hpp"
 #endif
-
-TEST_CASE("work_thread constructors", "[work_thread]") {
-	REQUIRE(true);
-}
-

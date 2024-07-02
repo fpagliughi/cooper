@@ -68,11 +68,24 @@ add_executable(unit_tests
     test_timer.cpp
 )
 
+target_include_directories(unit_tests PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+if (Catch2_VERSION VERSION_LESS "3.0")
+    message(STATUS "catch2 version is less than in upstream")
+    target_compile_definitions(unit_tests PUBLIC CATCH2_V2)
+    set(CATCH2_LIB Catch2::Catch2)
+else()
+    set(CATCH2_LIB Catch2::Catch2WithMain)
+endif()
+
+
 # --- Link for executables ---
 
 target_link_libraries(unit_tests
     Cooper::cooper
-    Catch2::Catch2
+    ${CATCH2_LIB}
     Threads::Threads
 )
 

@@ -2,7 +2,7 @@
 // 
 
 #include "cooper/func_wrapper.h"
-#include <catch2/catch.hpp>
+#include "catch2_version.h"
 
 using namespace cooper;
 

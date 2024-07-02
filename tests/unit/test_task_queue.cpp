@@ -8,7 +8,7 @@
 /****************************************************************************
  * BSD 3-Clause License
  *
- * Copyright (c) 2019, Frank Pagliughi
+ * Copyright (c) 2019-2024, Frank Pagliughi
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,7 @@
  ***************************************************************************/
 
 #include "cooper/task_queue.h"
-#include <catch2/catch.hpp>
+#include "catch2_version.h"
 
 using namespace std::chrono;
 using namespace cooper;

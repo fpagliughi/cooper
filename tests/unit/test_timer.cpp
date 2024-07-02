@@ -40,7 +40,7 @@
  ***************************************************************************/
 
 #include "cooper/task_queue.h"
-#include <catch2/catch.hpp>
+#include "catch2_version.h"
 
 #if 0
 #include <iostream>
