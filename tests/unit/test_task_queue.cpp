@@ -65,8 +65,8 @@ TEST_CASE("task_queue constructors", "[task_queue]") {
 }
 
 TEST_CASE("task_queue put", "[task_queue]") {
-	const auto TIMEOUT = 10ms;
-	const size_t N = 3;
+	constexpr auto TIMEOUT = 10ms;
+	constexpr size_t N = 3;
 
 	task_queue<int> que(N);
 
@@ -120,8 +120,8 @@ TEST_CASE("task_queue put", "[task_queue]") {
 }
 
 TEST_CASE("task_queue get", "[task_queue]") {
-	const auto TIMEOUT = 10ms;
-	const size_t N = 3;
+	constexpr auto TIMEOUT = 10ms;
+	constexpr size_t N = 3;
 
 	task_queue<int> que(N);
 	for (size_t i=1; i<=N; ++i)

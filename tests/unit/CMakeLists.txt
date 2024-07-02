@@ -5,7 +5,7 @@
 # ---------------------------------------------------------------------------
 # This file is part of the "cooper" C++ actor library.
 #
-# Copyright (c) 2019 Frank Pagliughi
+# Copyright (c) 2019-2024 Frank Pagliughi
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -37,10 +37,9 @@
 #
 # --------------------------------------------------------------------------
 
-find_package(Catch2 REQUIRED)
-
 message(STATUS "Building cooper unit tests")
-message(STATUS "Using library for unit tests: ${COOPER_LIB}")
+
+find_package(Catch2 REQUIRED)
 
 # --- For apps that use threads ---
 
@@ -50,20 +49,31 @@ find_package(Threads REQUIRED)
 # --- Executables ---
 
 add_executable(unit_tests 
-	unit_tests.cpp
-	test_func_wrapper.cpp
-  test_task_queue.cpp
-	test_work.cpp
-	test_timer.cpp
+    unit_tests.cpp
+    test_func_wrapper.cpp
+    test_task_queue.cpp
+    test_work.cpp
+    test_timer.cpp
 )
 
 # --- Link for executables ---
 
 target_link_libraries(unit_tests
-  ${COOPER_LIB} 
-	Catch2::Catch2
-	Threads::Threads
+    Cooper::cooper
+    Catch2::Catch2
+    Threads::Threads
 )
+
+# --- Target properties ---
+
+target_compile_features(unit_tests PRIVATE cxx_std_17)
+
+set_target_properties(unit_tests PROPERTIES
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+
+# --- Test ---
 
 include(CTest)
 include(Catch)

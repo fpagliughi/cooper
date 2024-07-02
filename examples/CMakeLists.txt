@@ -46,14 +46,25 @@ find_package(Threads REQUIRED)
 # --- Executables ---
 
 set(EXECUTABLES
-  out_file
-  shared_keyval
-  swarm
+    out_file
+    shared_keyval
+    swarm
 )
 
 foreach(EXECUTABLE ${EXECUTABLES})
-  add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
-  target_link_libraries(${EXECUTABLE} cooper Threads::Threads)
+    add_executable(${EXECUTABLE} ${EXECUTABLE}.cpp)
+
+    target_link_libraries(${EXECUTABLE} 
+        Cooper::cooper 
+        Threads::Threads
+    )
+
+    target_compile_features(${EXECUTABLE} PRIVATE cxx_std_17)
+
+    set_target_properties(${EXECUTABLE} PROPERTIES
+        CXX_STANDARD_REQUIRED ON
+        CXX_EXTENSIONS OFF
+    )
 endforeach()
 
 # --- Install ---
