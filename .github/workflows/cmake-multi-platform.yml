@@ -67,8 +67,8 @@ jobs:
         cd Catch2
         git checkout "v3.6.0"
         mkdir build && cd build
-        cmake .. -DBUILD_TESTING=OFF
-        cmake --build . --target install
+        cmake .. -DBUILD_TESTING=OFF -DCMAKE_CXX_COMPILER=${{ matrix.cpp_compiler }}
+        cmake --build . --config ${{ matrix.build_type }} --target install
 
 
     - name: Set reusable strings
