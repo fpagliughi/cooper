@@ -76,7 +76,7 @@ protected:
 	 * @throws Any exception thrown by the task.
 	 */
 	template <class Func>
-	typename std::result_of<Func()>::type call(Func&& f) {
+	typename std::invoke_result_t<Func> call(Func&& f) {
 		return thr_.submit(std::forward<Func>(f)).get();
 	}
 	/**
@@ -92,7 +92,7 @@ protected:
 	 * @throws Any exception thrown by the task.
 	 */
 	template <class Func, class... Args>
-	typename std::result_of<Func(Args...)>::type call(Func&& f, Args&&... args) {
+	typename std::invoke_result_t<Func,Args...> call(Func&& f, Args&&... args) {
 		return thr_.submit(std::forward<Func>(f), std::forward<Args>(args)...).get();
 	}
 	/**

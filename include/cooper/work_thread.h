@@ -146,8 +146,8 @@ public:
 	 *  	   for the task to complete and retrieve its return value.
 	 */
 	template<typename Func>
-	std::future<typename std::result_of<Func()>::type> submit(Func f) {
-		using result_type = typename std::result_of<Func()>::type;
+	std::future<typename std::invoke_result_t<Func>> submit(Func f) {
+		using result_type = typename std::invoke_result_t<Func>;
 		std::packaged_task<result_type()> task(std::move(f));
 		std::future<result_type> fut(task.get_future());
 		que_.put(std::move(task));
@@ -166,7 +166,7 @@ public:
 	 *  	   for the task to complete and retrieve its return value.
 	 */
 	template <class Func, class... Args>
-	std::future<typename std::result_of<Func(Args...)>::type>
+	std::future<typename std::invoke_result_t<Func,Args...>>
 			submit(Func&& f, Args&&... args) {
 		return submit(std::bind(std::forward<Func>(f),
 								std::forward<Args>(args)...));
@@ -182,7 +182,7 @@ public:
 	 * @throws Any exception thrown by the task.
 	 */
 	template <class Func>
-	typename std::result_of<Func()>::type call(Func&& f) {
+	typename std::invoke_result_t<Func> call(Func&& f) {
 		return submit(std::forward<Func>(f)).get();
 	}
 	/**
@@ -198,7 +198,7 @@ public:
 	 * @throws Any exception thrown by the task.
 	 */
 	template <class Func, class... Args>
-	typename std::result_of<Func(Args...)>::type call(Func&& f, Args&&... args) {
+	typename std::invoke_result_t<Func,Args...> call(Func&& f, Args&&... args) {
 		return submit(std::forward<Func>(f), std::forward<Args>(args)...).get();
 	}
 	/**
